@@ -9,12 +9,12 @@ Parameters:
   ParamWebhookUrl:
     Type: String
     Description: The URL to send alerts to Spike. Get from spike integration page at https://app.spike.sh/integrations/abc.........789
-    Default: 'https://hooks.spike.sh/abc.............789/push-events'
+    # Default: 'https://hooks.spike.sh/abc.............789/push-events'
+    MinLength: 11
   ParamSSMParameterName:
     Type: String
     Description: Parameter name to store the ARN for the SNS topic to send alerts
     Default: '/spike/alert/sns/arn'
-
 
 Resources:
   SpikeAlertTopic:

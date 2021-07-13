@@ -1,0 +1,64 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Create Bucket to host requestor pays hosted CFN templates for click to deploy
+Parameters:
+  ParamBucketNamePrefix:
+    Type: String
+    Description: 'Bucket prefix to use'
+    Default: 'requestor-pays'
+
+Resources:
+
+  RequestorPaysBucket:
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${ParamBucketNamePrefix}-${AWS::AccountId}-${AWS::Region}'
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      # PublicAccessBlockConfiguration:
+      #   BlockPublicAcls: true
+      #   BlockPublicPolicy: true
+      #   IgnorePublicAcls: true
+      #   RestrictPublicBuckets: true
+      Tags:
+      - Key: cyclic:app:name
+        Value: !Ref AWS::StackName
+
+  # ArtifactBucketSSM:
+  #   Type: AWS::SSM::Parameter
+  #   Properties:
+  #     DataType: text
+  #     Description: Bucket name for artifacts bucket
+  #     Name: /cyclic/artifacts/bucket
+  #     Type: String
+  #     Value: !Ref ArtifactsBucket
+  #     Tags:
+  #     - Key: cyclic:app:name
+  #       Value: !Ref AWS::StackName
+
+  RequestorPaysBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref RequestorPaysBucket
+      PolicyDocument:
+        Id: RequestorPaysBucketReadPolicy
+        Version: '2012-10-17'
+        Statement:
+        - Sid: RequestorPaysBucketReadPolicyStmt
+          Action:
+          - s3:GetObject
+          - s3:GetObjectVersion
+          Principal:
+            AWS: '*'
+          Effect: Allow
+          Resource:
+          - !Sub 'arn:aws:s3:::${RequestorPaysBucket}/*'
+          # Condition:
+          #   StringEquals:
+          #     'aws:PrincipalOrgID': !Ref OrgId
