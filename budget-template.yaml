@@ -1,0 +1,51 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Create basic monthly budget and send alert to SNS topic if exceeded
+Parameters:
+  ParamTopicArn:
+    Type: String
+    Description: The topic name to use for SNS display name inside of AWS
+    Default: '{{resolve:ssm:/spike/alert/sns/arn}}'
+  ParamBudgetLimitDollars:
+    Type: Number
+    MinValue: 1
+    MaxValue: 1000000
+    Description: The Dollar threashold to send alerts for 100% of actual or 150% of forecasted
+    Default: 100
+
+Resources:
+  MonthlyBudget:
+    Type: AWS::Budgets::Budget
+    Properties:
+      Budget:
+        BudgetType: COST
+        BudgetLimit:
+          Amount: !Ref ParamBudgetLimitDollars
+          Unit: USD
+        TimeUnit: MONTHLY
+      NotificationsWithSubscribers:
+        - Notification:
+            NotificationType: ACTUAL
+            ComparisonOperator: GREATER_THAN
+            Threshold: 99
+          Subscribers:
+            - SubscriptionType: SNS
+              Address: !Ref ParamTopicArn
+        - Notification:
+            NotificationType: FORECASTED
+            ComparisonOperator: GREATER_THAN
+            Threshold: 150
+          Subscribers:
+            - SubscriptionType: SNS
+              Address: !Ref ParamTopicArn
+        # - Notification:
+        #     NotificationType: ACTUAL
+        #     ComparisonOperator: GREATER_THAN
+        #     Threshold: 99
+        #   Subscribers:
+        #   - SubscriptionType: EMAIL
+        #     Address: email@example.com
+
+Outputs:
+  BudgetId:
+    Value: !Ref MonthlyBudget
