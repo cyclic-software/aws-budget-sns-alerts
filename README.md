@@ -2,7 +2,6 @@
 
 This repo deploys a budget and sns topic that is connected to spike.sh via an https webhook.
 
-
 ## How to deploy
 
 ### Spike SNS Alert Topic
