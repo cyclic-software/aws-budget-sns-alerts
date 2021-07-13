@@ -19,6 +19,8 @@ If you want to work on these stacks. Here is the workflow.
 
 ### Init/Deploy/Upload
 
-`make init`: sets up bucket to host Launch Stacks templates **NOTE**: you must turn on requestor pays inside the console.
-`make deploy`: deploy cloudformation stacks for the budget and SNS topic to send alerts. **NOTE** use .env to define Webhook URL
-`make upload`: uploads the budget and sns alert templates
+- `make init`: sets up bucket to host Launch Stacks templates **NOTE**: you must turn on requestor pays inside the console.
+
+- `make deploy`: deploy cloudformation stacks for the budget and SNS topic to send alerts. **NOTE** use .env to define Webhook URL
+
+- `make upload`: uploads the budget and sns alert templates
