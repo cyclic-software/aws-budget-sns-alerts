@@ -1,0 +1,72 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Create Spike SNS topic with Webhook Subscription
+Parameters:
+  ParamTopicName:
+    Type: String
+    Description: The topic name to use for SNS display name inside of AWS
+    Default: 'SpikeAlertTopic'
+  ParamWebhookUrl:
+    Type: String
+    Description: The URL to send alerts to Spike. Get from spike integration page at https://app.spike.sh/integrations/abc.........789
+    Default: 'https://hooks.spike.sh/abc.............789/push-events'
+  ParamSSMParameterName:
+    Type: String
+    Description: Parameter name to store the ARN for the SNS topic to send alerts
+    Default: '/spike/alert/sns/arn'
+
+
+Resources:
+  SpikeAlertTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: !Ref ParamTopicName
+      Tags:
+      - Key: stack:name
+        Value: !Ref AWS::StackName
+
+  SpikeAlertTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      Topics:
+        - !Ref SpikeAlertTopic
+      PolicyDocument:
+        Id: SpikeAlertTopicAccountPublishPolicy
+        Version: '2012-10-17'
+        Statement:
+        - Sid: GrantPublishToAllAwsServices
+          Effect: Allow
+          Principal:
+            Service:
+            - budgets.amazonaws.com
+            - cloudformation.amazonaws.com
+            - cloudwatch-crossaccount.amazonaws.com
+            - logs.amazonaws.com
+          Action:
+          - sns:Publish
+          Resource: !Ref SpikeAlertTopic
+        - Sid: GrantPublishToAccount
+          Effect: Allow
+          Principal:
+            AWS: !Ref AWS::AccountId
+          Action:
+          - sns:Publish
+          Resource: !Ref SpikeAlertTopic
+
+  SpikeAlertSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Endpoint: !Ref ParamWebhookUrl
+      Protocol: https
+      RawMessageDelivery: false
+      TopicArn: !Ref SpikeAlertTopic
+
+  SpikeAlertTopicSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      DataType: text
+      Description: SNS Topic Arn to send alerts to spike.sh
+      Name: !Ref ParamSSMParameterName
+      Type: String
+      Value: !Ref SpikeAlertTopic
+
